@@ -17,15 +17,14 @@ class CreateBooksTable extends Migration
             $table->unsignedBigInteger('id', false)->primary();
             $table->foreignId('publisher_id')->references('id')->on('publishers');
 
-            $table->string('slug', 255)->nullable();
             $table->string('title', 255);
             $table->string('original_title', 255)->nullable();
             $table->text('description')->nullable();
             $table->boolean('ebook')->nullable();
-            $table->unsignedInteger('price')->nullable();
+            $table->unsignedInteger('price');
             $table->unsignedInteger('club_price')->nullable();
             $table->string('currency', 20)->nullable();
-            $table->string('language', 50)->nullable();
+            $table->string('language', 50);
             $table->string('original_language', 50)->nullable();
             $table->string('cover', 50)->nullable();
             $table->unsignedSmallInteger('pages')->nullable();
