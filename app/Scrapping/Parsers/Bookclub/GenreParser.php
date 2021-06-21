@@ -37,6 +37,6 @@ class GenreParser extends Parser
             return null;
         }
 
-        return $descriptionCrawler->text();
+        return preg_replace('@<(\w+)\b.*?>.*?</\1>@si', '', $descriptionCrawler->html());
     }
 }
