@@ -98,7 +98,7 @@ class BookParser extends Parser
         $clubPrice = $this->isEmpty($clubPriceNode) ? null : rtrim($clubPriceNode->text(), $currency);
 
         return [
-            'currency' => empty($currency) ? null : $currency,
+            'currency' => empty($currency) ? null : preg_replace('/\s+/u', '', $currency),
             'price' => $price,
             'club_price' => $clubPrice,
         ];
