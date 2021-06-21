@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use App\Scrapping\Parser;
+use App\Scrapping\Scrappers\Bookclub\AuthorScrapper;
+use App\Scrapping\Scrappers\Bookclub\BookScrapper;
+use App\Scrapping\Scrappers\Bookclub\GenreScrapper;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->app->bind('bookclub-book-scrapper', BookScrapper::class);
+        $this->app->bind('bookclub-genre-scrapper', GenreScrapper::class);
+        $this->app->bind('bookclub-author-scrapper', AuthorScrapper::class);
+
         $this->app->when(\App\Scrapping\Scrappers\Bookclub\AuthorScrapper::class)
             ->needs(Parser::class)
             ->give(function () {
