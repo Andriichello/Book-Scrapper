@@ -5,7 +5,7 @@ namespace App\Scrapping\Scrappers;
 use App\Scrapping\Scrapper;
 use Illuminate\Support\Facades\App;
 
-class AuthorScrapperFactory implements ScrapperFactory
+class BookScrapperFactory implements ScrapperFactory
 {
     /**
      * @throws \Exception
@@ -13,9 +13,9 @@ class AuthorScrapperFactory implements ScrapperFactory
     public function initialize(string $source = 'bookclub'): Scrapper
     {
         if ($source === 'bookclub') {
-            return App::make(Bookclub\AuthorScrapper::class);
+            return App::make(Bookclub\BookScrapper::class);
         }
 
-        throw new \Exception("There is no author scrapper for such web source.");
+        throw new \Exception("There is no book scrapper for such web source.");
     }
 }
