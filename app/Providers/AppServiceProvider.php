@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
         Relation::morphMap([
             'books' => 'App\Models\Book',
             'genres' => 'App\Models\Genre',
-            'authors' => 'App\Models\Authors',
+            'authors' => 'App\Models\Author',
         ]);
     }
 }

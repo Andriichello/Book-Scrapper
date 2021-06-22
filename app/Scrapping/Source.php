@@ -8,5 +8,4 @@ final class Source extends Enum
 {
     const Bookclub = 'bookclub';
     const Starylev = 'starylev';
-    const Yakaboo = 'yakaboo';
 }
