@@ -6,6 +6,7 @@ use App\Scrapping\Parsers\AuthorParserFactory;
 use App\Scrapping\Scrappers\AuthorScrapperFactory;
 use App\Scrapping\Scrappers\BookScrapperFactory;
 use App\Scrapping\Scrappers\GenreScrapperFactory;
+use App\Scrapping\Source;
 use Tests\TestCase;
 
 class ScrapperTest extends TestCase
@@ -33,7 +34,6 @@ class ScrapperTest extends TestCase
      */
     public function testScrapeAuthorWithInvalidValues(string $source, string $slug) {
 //        $this->expectException(\Exception::class);
-
         $scrapper = $this->app->make("$source-author-scrapper");
         $data = $scrapper->scrape(['slug' => $slug]);
 
