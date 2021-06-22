@@ -7,20 +7,6 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class AuthorParser extends Parser
 {
-    public function parse(Crawler $crawler, array $params = []): ?array
-    {
-        if ($crawler == null) {
-            return null;
-        }
-
-        return [
-            'slug' => data_get($params, 'slug'),
-            'name' => $this->parseName($crawler),
-            'image' => $this->parseImage($crawler),
-            'biography' => $this->parseBiography($crawler),
-        ];
-    }
-
     protected function parseName(Crawler $crawler): ?string
     {
         $imageCrawler = $crawler->filter('.authorimg img')->first();
@@ -43,8 +29,8 @@ class AuthorParser extends Parser
 
     protected function parseBiography(Crawler $crawler): ?string
     {
-        $divCrawlers = $crawler->filter('.auth_bio_txt')->children();
-        if ($divCrawlers->count() < 2) {
+        $divCrawlers = $crawler->filter('.auth_bio_txt');
+        if ($this->isEmpty($divCrawlers) || $divCrawlers->children()->count() < 2) {
             return null;
         }
 
@@ -53,5 +39,25 @@ class AuthorParser extends Parser
             $biography .= htmlentities($element->html());
         });
         return empty($biography) ? null : $biography;
+    }
+
+    protected function parseData(Crawler $crawler, array $params = []): ?array
+    {
+        $data = [
+            'slug' => data_get($params, 'slug'),
+            'name' => $this->parseName($crawler),
+            'image' => $this->parseImage($crawler),
+            'biography' => $this->parseBiography($crawler),
+        ];
+
+        return $this->validatedData($data);
+    }
+
+    protected function validatedData(array $data): ?array
+    {
+        if (empty($data['name'])) {
+            return null;
+        }
+        return parent::validatedData($data);
     }
 }

@@ -8,12 +8,23 @@ abstract class Parser
 {
     public function parse(Crawler $crawler, array $params = []): ?array
     {
-        if ($crawler === null) {
+        if ($this->isEmpty($crawler)) {
             return null;
         }
 
-        return [];
+        return $this->parseData($crawler, $params);
     }
+
+    protected function parseData(Crawler $crawler, array $params = []): ?array
+    {
+        return $this->validatedData([]);
+    }
+
+    protected function validatedData(array $data): ?array
+    {
+        return $data;
+    }
+
 
     protected function isEmpty(?Crawler $crawler): bool
     {

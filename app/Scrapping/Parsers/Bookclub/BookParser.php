@@ -35,24 +35,6 @@ class BookParser extends Parser
         'Перекладач(і)' => 'details.translators',
     ];
 
-    public function parse(Crawler $crawler, array $params = []): ?array
-    {
-        if ($crawler == null) {
-            return null;
-        }
-
-        return array_merge(
-            [
-                'slug' => data_get($params, 'slug'),
-                'title' => $this->parseTitle($crawler),
-                'image' => $this->parseImage($crawler),
-                'description' => $this->parseDescription($crawler),
-            ],
-            $this->parsePrices($crawler) ?? [],
-            $this->parseData($crawler) ?? [],
-        );
-    }
-
     protected function parseImage(Crawler $crawler): ?string
     {
         $imageCrawler = $crawler->filter('.prd-image .imgprod')->first();
@@ -169,7 +151,7 @@ class BookParser extends Parser
         return [$attributes, $hrefs];
     }
 
-    protected function parseData(Crawler $crawler): ?array
+    protected function parseBook(Crawler $crawler): ?array
     {
         $characteristics = $this->parseCharacteristics($crawler);
         if (empty($characteristics)) {
@@ -188,5 +170,30 @@ class BookParser extends Parser
             ];
         }
         return $characteristics[0];
+    }
+
+    protected function parseData(Crawler $crawler, array $params = []): ?array
+    {
+        $data = array_merge(
+            [
+                'slug' => data_get($params, 'slug'),
+                'title' => $this->parseTitle($crawler),
+                'image' => $this->parseImage($crawler),
+                'description' => $this->parseDescription($crawler),
+            ],
+            $this->parsePrices($crawler) ?? [],
+            $this->parseBook($crawler) ?? [],
+        );
+
+        return $this->validatedData($data);
+    }
+
+    protected function validatedData(array $data): ?array
+    {
+        if (empty($data['title'])) {
+            return null;
+        }
+
+        return $data;
     }
 }

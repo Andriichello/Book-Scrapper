@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Scrapping\Scrappers\AuthorScrapperFactory;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\App;
 
 class ScrapeAuthorBySlug extends Command
 {
@@ -36,10 +36,10 @@ class ScrapeAuthorBySlug extends Command
      *
      * @return int
      */
-    public function handle(AuthorScrapperFactory $factory)
+    public function handle()
     {
         try {
-            return $this->perform($factory);
+            return $this->perform();
         } catch (\Exception $exception) {
             $this->error($exception->getMessage());
             return $exception->getCode();
@@ -49,16 +49,17 @@ class ScrapeAuthorBySlug extends Command
     /**
      * @throws \Exception
      */
-    protected function perform(AuthorScrapperFactory $factory): int
+    protected function perform(): int
     {
-        $scrapper = $factory->initialize($this->option('source'));
-        $book = $scrapper->scrape(['slug' => $this->argument('slug')]);
+        $scrapper = App::make($this->option('source') . '-author-scrapper');
+        $author = $scrapper->scrape(['slug' => $this->argument('slug')]);
 
-        if (empty($book)) {
+        if (empty($author)) {
+            $this->error('Unable to parse author with such slug: ' . $this->argument('slug'));
             return 1;
         }
 
-        $this->line(json_encode($book, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        $this->line(json_encode($author, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         return 0;
     }
 }

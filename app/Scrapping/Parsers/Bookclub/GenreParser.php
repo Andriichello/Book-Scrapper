@@ -7,19 +7,6 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class GenreParser extends Parser
 {
-    public function parse(Crawler $crawler, array $params = []): ?array
-    {
-        if ($crawler == null) {
-            return null;
-        }
-
-        return [
-            'slug' => data_get($params, 'slug'),
-            'name' => $this->parseName($crawler),
-            'description' => $this->parseDescription($crawler),
-        ];
-    }
-
     protected function parseName(Crawler $crawler): ?string
     {
         $genreCrawler = $crawler->filter('.sec-podpunkt-act')->first();
@@ -38,5 +25,24 @@ class GenreParser extends Parser
         }
 
         return preg_replace('@<(\w+)\b.*?>.*?</\1>@si', '', $descriptionCrawler->html());
+    }
+
+    protected function parseData(Crawler $crawler, array $params = []): ?array
+    {
+        $data = [
+            'slug' => data_get($params, 'slug'),
+            'name' => $this->parseName($crawler),
+            'description' => $this->parseDescription($crawler),
+        ];
+
+        return $this->validatedData($data);
+    }
+
+    protected function validatedData(array $data): ?array
+    {
+        if (empty($data['name'])) {
+            return null;
+        }
+         return $data;
     }
 }
