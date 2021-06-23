@@ -38,19 +38,6 @@ class ScrapeGenreBySlug extends Command
      */
     public function handle()
     {
-        try {
-            return $this->perform();
-        } catch (\Exception $exception) {
-            $this->error($exception->getMessage());
-            return $exception->getCode();
-        }
-    }
-
-    /**
-     * @throws \Exception
-     */
-    protected function perform(): int
-    {
         $scrapper = App::make($this->option('source') . '-genre-scrapper');
         $genre = $scrapper->scrape(['slug' => $this->argument('slug')]);
 
@@ -63,3 +50,4 @@ class ScrapeGenreBySlug extends Command
         return 0;
     }
 }
+

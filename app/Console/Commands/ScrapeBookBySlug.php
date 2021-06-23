@@ -38,19 +38,6 @@ class ScrapeBookBySlug extends Command
      */
     public function handle()
     {
-        try {
-            return $this->perform();
-        } catch (\Exception $exception) {
-            $this->error($exception->getMessage());
-            return $exception->getCode();
-        }
-    }
-
-    /**
-     * @throws \Exception
-     */
-    protected function perform(): int
-    {
         $scrapper = App::make($this->option('source') . '-book-scrapper');
         $book = $scrapper->scrape(['slug' => $this->argument('slug')]);
 
@@ -61,5 +48,6 @@ class ScrapeBookBySlug extends Command
 
         $this->line(json_encode($book, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         return 0;
+
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Scrapping\Source;
+use App\Scrapping\Parsers;
+use App\Scrapping\Scrappers;
 use Illuminate\Support\ServiceProvider;
 
 class ScrapperServiceProvider extends ServiceProvider
@@ -14,27 +16,17 @@ class ScrapperServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind(Source::Bookclub . '-book-scrapper', \App\Scrapping\Scrappers\Bookclub\BookScrapper::class);
-        $this->app->bind(Source::Bookclub . '-genre-scrapper', \App\Scrapping\Scrappers\Bookclub\GenreScrapper::class);
-        $this->app->bind(Source::Bookclub . '-author-scrapper', \App\Scrapping\Scrappers\Bookclub\AuthorScrapper::class);
+        $this->app->bind(Source::Bookclub . '-book-scrapper', function () {
+            return new Scrappers\Bookclub\BookScrapper($this->app->make(Parsers\Bookclub\BookParser::class));
+        });
 
-        $this->app->when(\App\Scrapping\Scrappers\Bookclub\BookScrapper::class)
-            ->needs(\App\Scrapping\Parser::class)
-            ->give(function () {
-                return new \App\Scrapping\Parsers\Bookclub\BookParser();
-            });
+        $this->app->bind(Source::Bookclub . '-genre-scrapper', function () {
+            return new Scrappers\Bookclub\GenreScrapper($this->app->make(Parsers\Bookclub\GenreParser::class));
+        });
 
-        $this->app->when(\App\Scrapping\Scrappers\Bookclub\GenreScrapper::class)
-            ->needs(\App\Scrapping\Parser::class)
-            ->give(function () {
-                return new \App\Scrapping\Parsers\Bookclub\GenreParser();
-            });
-
-        $this->app->when(\App\Scrapping\Scrappers\Bookclub\AuthorScrapper::class)
-            ->needs(\App\Scrapping\Parser::class)
-            ->give(function () {
-                return new \App\Scrapping\Parsers\Bookclub\AuthorParser();
-            });
+        $this->app->bind(Source::Bookclub . '-author-scrapper', function () {
+            return new Scrappers\Bookclub\AuthorScrapper($this->app->make(Parsers\Bookclub\AuthorParser::class));
+        });
     }
 
     /**

@@ -38,19 +38,6 @@ class ScrapeAuthorBySlug extends Command
      */
     public function handle()
     {
-        try {
-            return $this->perform();
-        } catch (\Exception $exception) {
-            $this->error($exception->getMessage());
-            return $exception->getCode();
-        }
-    }
-
-    /**
-     * @throws \Exception
-     */
-    protected function perform(): int
-    {
         $scrapper = App::make($this->option('source') . '-author-scrapper');
         $author = $scrapper->scrape(['slug' => $this->argument('slug')]);
 

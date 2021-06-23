@@ -21,18 +21,18 @@ class AuthorParser extends Parser
 
     protected function parseBiography(Crawler $crawler): ?string
     {
-        $divCrawlers = $crawler->filter('.auth_bio_txt');
-        if ($this->isEmpty($divCrawlers) || $divCrawlers->children()->count() < 2) {
+        $biographyCrawler = $crawler->filter('.auth_bio_txt');
+        if ($this->isEmpty($biographyCrawler)) {
             return null;
         }
 
-        $paragraphCrawlers = $divCrawlers->slice(1, $divCrawlers->count() - 1);
+        $paragraphs = $biographyCrawler->children()
+            ->reduce(fn(Crawler $c, $i) => $i > 0)
+            ->each(function ($paragraphCrawler) {
+                return htmlentities($paragraphCrawler->outerHtml());
+            });
 
-        $biography = '';
-        $paragraphCrawlers->each(function ($element) use (&$biography) {
-            $biography .= htmlentities($element->html());
-        });
-        return empty($biography) ? null : $biography;
+        return empty($paragraphs) ? null : implode($paragraphs);
     }
 
     protected function validatedData(array $data): ?array
