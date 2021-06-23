@@ -6,13 +6,9 @@ use Symfony\Component\DomCrawler\Crawler;
 
 abstract class Parser
 {
-    public function parse(Crawler $crawler, array $params = []): ?array
+    protected function isEmpty(?Crawler $crawler): bool
     {
-        if ($this->isEmpty($crawler)) {
-            return null;
-        }
-
-        return $this->parseData($crawler, $params);
+        return empty($crawler) || $crawler->count() === 0;
     }
 
     protected function parseData(Crawler $crawler, array $params = []): ?array
@@ -25,10 +21,13 @@ abstract class Parser
         return $data;
     }
 
-
-    protected function isEmpty(?Crawler $crawler): bool
+    public function parse(Crawler $crawler, array $params = []): ?array
     {
-        return empty($crawler) || $crawler->count() === 0;
+        if ($this->isEmpty($crawler)) {
+            return null;
+        }
+
+        return $this->parseData($crawler, $params);
     }
 
     public function parseElementAttribute(Crawler $crawler, string $attributeName, mixed $default = null): mixed

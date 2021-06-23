@@ -10,21 +10,13 @@ class GenreParser extends Parser
     protected function parseName(Crawler $crawler): ?string
     {
         $genreCrawler = $crawler->filter('.sec-podpunkt-act')->first();
-        if ($this->isEmpty($genreCrawler)) {
-            return null;
-        }
-
-        return $genreCrawler->text();
+        return $this->isEmpty($genreCrawler) ? null : $genreCrawler->text();
     }
 
     protected function parseDescription(Crawler $crawler): ?string
     {
         $descriptionCrawler = $crawler->filter('.cat-descript .cat-descr')->first();
-        if ($this->isEmpty($descriptionCrawler)) {
-            return null;
-        }
-
-        return preg_replace('@<(\w+)\b.*?>.*?</\1>@si', '', $descriptionCrawler->html());
+        return $this->isEmpty($descriptionCrawler) ? null : preg_replace('@<(\w+)\b.*?>.*?</\1>@si', '', $descriptionCrawler->html());
     }
 
     protected function parseData(Crawler $crawler, array $params = []): ?array
@@ -40,9 +32,11 @@ class GenreParser extends Parser
 
     protected function validatedData(array $data): ?array
     {
+        // todo: add validation rules
         if (empty($data['name'])) {
             return null;
         }
+
          return $data;
     }
 }

@@ -10,20 +10,12 @@ class AuthorParser extends Parser
     protected function parseName(Crawler $crawler): ?string
     {
         $imageCrawler = $crawler->filter('.authorimg img')->first();
-        if ($this->isEmpty($imageCrawler)) {
-            return null;
-        }
-
         return $this->parseElementAttribute($imageCrawler, 'alt');
     }
 
     protected function parseImage(Crawler $crawler): ?string
     {
         $imageCrawler = $crawler->filter('.authorimg img')->first();
-        if ($this->isEmpty($imageCrawler)) {
-            return null;
-        }
-
         return $this->parseElementAttribute($imageCrawler, 'src');
     }
 
@@ -34,11 +26,22 @@ class AuthorParser extends Parser
             return null;
         }
 
+        $paragraphCrawlers = $divCrawlers->slice(1, $divCrawlers->count() - 1);
+
         $biography = '';
-        $divCrawlers->slice(1, $divCrawlers->count() - 1)->each(function ($element) use (&$biography) {
+        $paragraphCrawlers->each(function ($element) use (&$biography) {
             $biography .= htmlentities($element->html());
         });
         return empty($biography) ? null : $biography;
+    }
+
+    protected function validatedData(array $data): ?array
+    {
+        // todo: add validation rules
+        if (empty($data['name'])) {
+            return null;
+        }
+        return parent::validatedData($data);
     }
 
     protected function parseData(Crawler $crawler, array $params = []): ?array
@@ -51,13 +54,5 @@ class AuthorParser extends Parser
         ];
 
         return $this->validatedData($data);
-    }
-
-    protected function validatedData(array $data): ?array
-    {
-        if (empty($data['name'])) {
-            return null;
-        }
-        return parent::validatedData($data);
     }
 }

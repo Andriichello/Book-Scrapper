@@ -9,7 +9,7 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class BookParser extends Parser
 {
-    protected array $attributeNames = [
+    protected array $characteristicNames = [
         'Код товару' => 'id',
         'Назва товару' => 'title',
         'Оригінальна назва' => 'original_title',
@@ -25,10 +25,6 @@ class BookParser extends Parser
         'Розділ:' => 'genre',
         'Рік видання' => 'year',
         'Сторінок' => 'pages',
-
-        /*
-         * Details
-         */
         'Ілюстрації' => 'details.illustrations',
         'Вага' => 'details.weight',
         'Серія' => 'details.series',
@@ -38,39 +34,23 @@ class BookParser extends Parser
     protected function parseImage(Crawler $crawler): ?string
     {
         $imageCrawler = $crawler->filter('.prd-image .imgprod')->first();
-        if ($this->isEmpty($imageCrawler)) {
-            return null;
-        }
-
         return $this->parseElementAttribute($imageCrawler, 'src');
     }
 
     protected function parseTitle(Crawler $crawler): ?string
     {
         $imageCrawler = $crawler->filter('.prd-image a img')->first();
-        if ($this->isEmpty($imageCrawler)) {
-            return null;
-        }
-
         return $this->parseElementAttribute($imageCrawler, 'alt');
     }
 
     protected function parseDescription(Crawler $crawler): ?string
     {
         $descriptionCrawler = $crawler->filter('.prd-descr-all .proddesc')->first();
-        if ($this->isEmpty($descriptionCrawler)) {
-            return null;
-        }
-
-        return htmlentities($descriptionCrawler->html());
+        return $this->isEmpty($descriptionCrawler) ? null : htmlentities($descriptionCrawler->html());
     }
 
     protected function parsePrices(Crawler $crawler): ?array
     {
-        if ($this->isEmpty($crawler)) {
-            return null;
-        }
-
         $priceNode = $crawler->filter('.prd-your-price-numb')->first();
         $clubPriceNode = $crawler->filter('.prd-enov-pr-numb')->first();
         $currencyNode = $priceNode->filter('.prd-your-price-valute')->first();
@@ -88,10 +68,6 @@ class BookParser extends Parser
 
     protected function parseAuthor(Crawler $crawler): ?array
     {
-        if ($this->isEmpty($crawler)) {
-            return null;
-        }
-
         $referenceCrawler = $crawler->filter('.prd-abt-author-img a')->first();
         if ($this->isEmpty($referenceCrawler)) {
             return null;
@@ -109,29 +85,21 @@ class BookParser extends Parser
 
     protected function parseCharacteristic(Crawler $crawler): ?array
     {
-        if ($this->isEmpty($crawler)) {
+        $characteristicName = $crawler->filter('.prd-attr-name')->first();
+        $characteristicValue = $crawler->filter('.prd-attr-descr')->first();
+
+        if ($this->isEmpty($characteristicName) || $this->isEmpty($characteristicValue)) {
             return null;
         }
 
-        $attributeName = $crawler->filter('.prd-attr-name')->first();
-        $attributeValue = $crawler->filter('.prd-attr-descr')->first();
+        $name = Arr::get($this->characteristicNames, $characteristicName->text(), $characteristicName->text());
 
-        if ($this->isEmpty($attributeName) || $this->isEmpty($attributeValue)) {
-            return null;
-        }
-
-        $name = Arr::get($this->attributeNames, $attributeName->text(), $attributeName->text());
-
-        $attributeReference = $attributeValue->filter('a')->first();
-        return [$name, $attributeValue->text(), $this->parseElementAttribute($attributeReference, 'href')];
+        $characteristicReference = $characteristicValue->filter('a')->first();
+        return [$name, $characteristicValue->text(), $this->parseElementAttribute($characteristicReference, 'href')];
     }
 
     protected function parseCharacteristics(Crawler $crawler): ?array
     {
-        if ($this->isEmpty($crawler)) {
-            return null;
-        }
-
         $characteristicsCrawler = $crawler->filter('.prd-attributes .prodchap');
         if ($this->isEmpty($characteristicsCrawler)) {
             return null;
@@ -151,7 +119,7 @@ class BookParser extends Parser
         return [$attributes, $hrefs];
     }
 
-    protected function parseBook(Crawler $crawler): ?array
+    protected function parseAdditional(Crawler $crawler): ?array
     {
         $characteristics = $this->parseCharacteristics($crawler);
         if (empty($characteristics)) {
@@ -182,7 +150,7 @@ class BookParser extends Parser
                 'description' => $this->parseDescription($crawler),
             ],
             $this->parsePrices($crawler) ?? [],
-            $this->parseBook($crawler) ?? [],
+            $this->parseAdditional($crawler) ?? [],
         );
 
         return $this->validatedData($data);
@@ -190,6 +158,7 @@ class BookParser extends Parser
 
     protected function validatedData(array $data): ?array
     {
+        // todo: add validation rules
         if (empty($data['title'])) {
             return null;
         }
