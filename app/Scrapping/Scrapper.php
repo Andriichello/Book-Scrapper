@@ -11,31 +11,25 @@ abstract class Scrapper
     protected string $url;
     protected string $method;
 
-    protected ?Parser $parser = null;
-    protected ?Client $client = null;
+    protected Parser $parser;
+    protected Client $client;
     protected ?Crawler $crawler = null;
     protected ?LoggerInterface $logger = null;
 
     public function __construct(string $url, string $method, Parser $parser, ?LoggerInterface $logger = null)
     {
-        $this->parser = $parser;
-        $this->logger = $logger;
-
         $this->url = $url;
         $this->method = strtoupper($method);
 
-        $this->loadClient();
+        $this->parser = $parser;
+        $this->logger = $logger;
+
+        $this->renewClient();
     }
 
     public function getUrl(array $params = []): string
     {
-        if (empty($params)) {
-            return $this->url;
-        }
-
-        $url = $this->url;
-        // apply specified params
-        return $url;
+        return $this->url;
     }
 
     public function getMethod(): string
@@ -53,32 +47,32 @@ abstract class Scrapper
         return $this->logger;
     }
 
-    protected function loadClient(): ?Client
+    protected function renewClient(): Client
     {
         return $this->client = new Client();
     }
 
-    protected function loadCrawler(string $url, string $method): ?Crawler
+    protected function currentClient(): Client
     {
-        if (empty($this->client)) {
-            return null;
-        }
+        return $this->client;
+    }
 
+    protected function renewRequest(string $url, string $method): ?Crawler
+    {
         return $this->crawler = $this->client->request($method, $url);
+    }
+
+    protected function currentRequest(): ?Crawler
+    {
+        return $this->crawler;
     }
 
     public function scrape(array $params = []): ?array
     {
-        if ($this->parser == null) {
-            return null;
-        }
+        $url = $this->getUrl($params);
+        $method = $this->getMethod();
 
-        return $this->parser->parse(
-            $this->loadCrawler(
-                $this->getUrl($params),
-                $this->getMethod()
-            ),
-            $params
-        );
+        $crawler = $this->renewRequest($url, $method);
+        return $this->parser->parse($crawler, $params);
     }
 }
