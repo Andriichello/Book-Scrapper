@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
-use App\Scrapping\Source;
-use App\Scrapping\Parsers;
-use App\Scrapping\Scrappers;
+use App\Services\Scrapping\Source;
+use App\Services\Scrapping\Parsers;
+use App\Services\Scrapping\Scrappers;
 use Illuminate\Support\ServiceProvider;
 
 class ScrapperServiceProvider extends ServiceProvider

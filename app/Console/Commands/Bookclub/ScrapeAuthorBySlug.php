@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Bookclub;
 
-use App\Scrapping\Scrappers\Bookclub\AuthorScrapper;
+use App\Services\Scrapping\Scrappers\Bookclub\AuthorScrapper;
 use Illuminate\Console\Command;
 
 class ScrapeAuthorBySlug extends Command

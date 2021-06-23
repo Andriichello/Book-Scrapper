@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Scrapping\Scrappers\Bookclub;
+namespace App\Services\Scrapping\Scrappers\Bookclub;
 
-use App\Scrapping\Parser;
-use App\Scrapping\Scrapper;
+use App\Services\Scrapping\Parser;
+use App\Services\Scrapping\Scrapper;
 use Illuminate\Support\Str;
 
-class AuthorScrapper extends Scrapper
+class BookScrapper extends Scrapper
 {
     public function __construct(Parser $parser)
     {
-        parent::__construct('https://bookclub.ua/read/', 'get', $parser);
+        parent::__construct('https://bookclub.ua/catalog/books/', 'get', $parser);
     }
 
     public function getUrl(array $params = []): string

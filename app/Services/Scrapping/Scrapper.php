@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Scrapping;
+namespace App\Services\Scrapping;
 
 use Goutte\Client;
 use Psr\Log\LoggerInterface;

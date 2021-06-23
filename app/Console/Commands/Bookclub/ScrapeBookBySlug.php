@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Bookclub;
 
-use App\Scrapping\Scrappers\Bookclub\BookScrapper;
+use App\Services\Scrapping\Scrappers\Bookclub\BookScrapper;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\App;
 
@@ -38,6 +38,5 @@ class ScrapeBookBySlug extends Command
 
         $this->line(json_encode($book, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         return 0;
-
     }
 }

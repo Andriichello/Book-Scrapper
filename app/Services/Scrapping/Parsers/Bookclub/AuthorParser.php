@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Scrapping\Parsers\Bookclub;
+namespace App\Services\Scrapping\Parsers\Bookclub;
 
-use App\Scrapping\Parser;
+use App\Services\Scrapping\Parser;
 use Symfony\Component\DomCrawler\Crawler;
 
 class AuthorParser extends Parser

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Bookclub;
 
-use App\Scrapping\Scrappers\Bookclub\GenreScrapper;
+use App\Services\Scrapping\Scrappers\Bookclub\GenreScrapper;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\App;
 

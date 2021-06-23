@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Scrapping\Scrappers\Bookclub;
+namespace App\Services\Scrapping\Scrappers\Bookclub;
 
-use App\Scrapping\Parser;
-use App\Scrapping\Scrapper;
+use App\Services\Scrapping\Parser;
+use App\Services\Scrapping\Scrapper;
 use Illuminate\Support\Str;
 
 class GenreScrapper extends Scrapper
