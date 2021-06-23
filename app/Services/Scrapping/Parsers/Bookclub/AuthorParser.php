@@ -3,14 +3,29 @@
 namespace App\Services\Scrapping\Parsers\Bookclub;
 
 use App\Services\Scrapping\Parser;
+use Illuminate\Support\Str;
 use Symfony\Component\DomCrawler\Crawler;
 
 class AuthorParser extends Parser
 {
-    protected function parseName(Crawler $crawler): ?string
+    protected function parseFullName(Crawler $crawler): ?string
     {
         $imageCrawler = $crawler->filter('.authorimg img')->first();
         return $this->parseElementAttribute($imageCrawler, 'alt');
+    }
+
+    protected function splitFullName(?string $fullName): array
+    {
+        if (empty($fullName)) {
+            return [];
+        }
+
+        $parts = Str::of($fullName)->explode(' ');
+        if ($parts->count() > 1) {
+            return ['surname' => $parts->pop(), 'name' => $parts->implode(' ')];
+        }
+
+        return ['surname' => null, 'name' => $parts->last()];
     }
 
     protected function parseImage(Crawler $crawler): ?string
@@ -46,12 +61,14 @@ class AuthorParser extends Parser
 
     protected function parseData(Crawler $crawler, array $params = []): ?array
     {
-        $data = [
-            'slug' => data_get($params, 'slug'),
-            'name' => $this->parseName($crawler),
-            'image' => $this->parseImage($crawler),
-            'biography' => $this->parseBiography($crawler),
-        ];
+        $data = array_merge(
+            [
+                'slug' => data_get($params, 'slug'),
+                'image' => $this->parseImage($crawler),
+                'biography' => $this->parseBiography($crawler),
+            ],
+            $this->splitFullName($this->parseFullName($crawler)),
+        );
 
         return $this->validatedData($data);
     }

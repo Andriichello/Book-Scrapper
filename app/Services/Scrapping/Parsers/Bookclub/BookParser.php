@@ -10,7 +10,7 @@ use Symfony\Component\DomCrawler\Crawler;
 class BookParser extends Parser
 {
     protected array $characteristicNames = [
-        'Код товару' => 'id',
+        'Код товару' => 'code',
         'Назва товару' => 'title',
         'Оригінальна назва' => 'original_title',
         'Автор' => 'author',

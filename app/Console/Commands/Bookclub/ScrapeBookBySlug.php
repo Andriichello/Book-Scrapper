@@ -29,14 +29,15 @@ class ScrapeBookBySlug extends Command
      */
     public function handle(BookScrapper $scrapper)
     {
-        $book = $scrapper->scrape(['slug' => $this->argument('slug')]);
+        $slug = $this->argument('slug');
+        $data = $scrapper->scrape(['slug' => $slug]);
 
-        if (empty($book)) {
-            $this->error('Unable to parse book with such slug: ' . $this->argument('slug'));
+        if (empty($data)) {
+            $this->error('Unable to parse book with such slug: ' . $slug);
             return 1;
         }
 
-        $this->line(json_encode($book, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        $this->line(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         return 0;
     }
 }
