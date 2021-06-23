@@ -12,7 +12,6 @@ class Genre extends Model
     use HasFactory, Slugable;
 
     protected $fillable = [
-        'slug',
         'name',
     ];
 

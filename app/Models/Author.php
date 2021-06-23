@@ -12,7 +12,6 @@ class Author extends Model
     use HasFactory, Imageable, Slugable;
 
     protected $fillable = [
-        'slug',
         'name',
         'surname',
         'biography',

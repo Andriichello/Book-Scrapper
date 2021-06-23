@@ -11,12 +11,10 @@ class Book extends Model
 {
     use HasFactory, Imageable, Slugable;
 
-    public $incrementing = false;
-
     protected $fillable = [
         'id',
         'publisher_id',
-        'slug',
+        'code',
         'title',
         'original_title',
         'language',
