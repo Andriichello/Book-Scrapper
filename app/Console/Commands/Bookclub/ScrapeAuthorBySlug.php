@@ -3,7 +3,7 @@
 namespace App\Console\Commands\Bookclub;
 
 use App\Models\Author;
-use App\Models\Slug;
+use App\Services\Actions\CreateSlugable;
 use App\Services\Actions\FindSlugable;
 use App\Services\Conditions\Equal;
 use App\Services\Scrapping\Scrappers\Bookclub\AuthorScrapper;
@@ -32,7 +32,7 @@ class ScrapeAuthorBySlug extends Command
      *
      * @return int
      */
-    public function handle(FindSlugable $find, AuthorScrapper $scrapper)
+    public function handle(FindSlugable $find, CreateSlugable $create, AuthorScrapper $scrapper)
     {
         $author = $this->findAuthor($find);
         if (isset($author)) {
@@ -47,7 +47,7 @@ class ScrapeAuthorBySlug extends Command
             return 1;
         }
 
-        $author = $this->createAuthor($data);
+        $author = $create->execute(Author::class, $data, ['slug' => $slug, 'source' => Source::Bookclub]);
         $this->line(json_encode($author, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         return 0;
     }
@@ -62,21 +62,5 @@ class ScrapeAuthorBySlug extends Command
         } catch (\Exception $exception) {
             return null;
         }
-    }
-
-    protected function createAuthor(array $data): Model {
-        $author = new Author($data);
-        if (!$author->save()) {
-            throw new \Exception('Unable to save author into the database');
-        }
-
-        $slug = new Slug([
-            'slug' => $this->argument('slug'),
-            'source' => Source::Bookclub
-        ]);
-        if (!$author->slugs()->save($slug)) {
-            throw new \Exception('Unable to save author\'s slug into the database');
-        }
-        return $author;
     }
 }

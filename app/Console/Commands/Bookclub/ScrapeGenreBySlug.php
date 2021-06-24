@@ -3,7 +3,7 @@
 namespace App\Console\Commands\Bookclub;
 
 use App\Models\Genre;
-use App\Models\Slug;
+use App\Services\Actions\CreateSlugable;
 use App\Services\Actions\FindSlugable;
 use App\Services\Conditions\Equal;
 use App\Services\Scrapping\Scrappers\Bookclub\GenreScrapper;
@@ -33,7 +33,7 @@ class ScrapeGenreBySlug extends Command
      * @return int
      * @throws \Exception
      */
-    public function handle(FindSlugable $find, GenreScrapper $scrapper)
+    public function handle(FindSlugable $find, CreateSlugable $create, GenreScrapper $scrapper)
     {
         $genre = $this->findGenre($find);
         if (isset($genre)) {
@@ -48,7 +48,7 @@ class ScrapeGenreBySlug extends Command
             return 1;
         }
 
-        $genre = $this->createGenre($data);
+        $genre = $create->execute(Genre::class, $data, ['slug' => $slug, 'source' => Source::Bookclub]);
         $this->line(json_encode($genre, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         return 0;
     }
@@ -63,23 +63,6 @@ class ScrapeGenreBySlug extends Command
         } catch (\Exception $exception) {
             return null;
         }
-    }
-
-    protected function createGenre(array $data): ?Model
-    {
-        $genre = new Genre($data);
-        if (!$genre->save()) {
-            throw new \Exception('Unable to save genre into the database');
-        }
-
-        $slug = new Slug([
-            'slug' => $this->argument('slug'),
-            'source' => Source::Bookclub
-        ]);
-        if (!$genre->slugs()->save($slug)) {
-            throw new \Exception('Unable to save genre\'s slug into the database');
-        }
-        return $genre;
     }
 }
 

@@ -5,7 +5,6 @@ namespace App\Services\Conditions;
 use App\Services\Queryable;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Support\Str;
 
 abstract class Condition implements Queryable
 {

@@ -5,7 +5,6 @@ namespace App\Services\Conditions;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Query\JoinClause;
-use Illuminate\Support\Str;
 
 class On extends Equal
 {
