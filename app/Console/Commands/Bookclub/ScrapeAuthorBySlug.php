@@ -2,17 +2,24 @@
 
 namespace App\Console\Commands\Bookclub;
 
+use App\Console\Commands\Slugable;
+use App\Console\Commands\Sourcable;
 use App\Models\Author;
 use App\Services\Actions\CreateSlugable;
 use App\Services\Actions\FindSlugable;
-use App\Services\Conditions\Equal;
 use App\Services\Scrapping\Scrappers\Bookclub\AuthorScrapper;
 use App\Services\Scrapping\Source;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Model;
 
 class ScrapeAuthorBySlug extends Command
 {
+    use Sourcable, Slugable;
+
+    public function getSource(): string
+    {
+        return Source::Bookclub;
+    }
+
     /**
      * The name and signature of the console command.
      *
@@ -52,15 +59,8 @@ class ScrapeAuthorBySlug extends Command
         return 0;
     }
 
-    protected function findAuthor(FindSlugable $find): ?Model
+    public function findAuthor(FindSlugable $find)
     {
-        try {
-            return $find->execute(Author::class, [
-                new Equal('slug', $this->argument('slug')),
-                new Equal('source', Source::Bookclub)
-            ]);
-        } catch (\Exception $exception) {
-            return null;
-        }
+        return $this->findSlugableModel(Author::class, $find, $this->argument('slug'), $this->getSource());
     }
 }

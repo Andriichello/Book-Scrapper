@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands\Bookclub;
 
+use App\Console\Commands\Slugable;
+use App\Console\Commands\Sourcable;
 use App\Models\Genre;
 use App\Services\Actions\CreateSlugable;
 use App\Services\Actions\FindSlugable;
@@ -13,6 +15,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class ScrapeGenreBySlug extends Command
 {
+    use Slugable, Sourcable;
+
+    public function getSource(): string
+    {
+        return Source::Bookclub;
+    }
+
     /**
      * The name and signature of the console command.
      *
@@ -55,14 +64,7 @@ class ScrapeGenreBySlug extends Command
 
     protected function findGenre(FindSlugable $find): ?Model
     {
-        try {
-            return $find->execute(Genre::class, [
-                new Equal('slug', $this->argument('slug')),
-                new Equal('source', Source::Bookclub),
-            ]);
-        } catch (\Exception $exception) {
-            return null;
-        }
+        return $this->findSlugableModel(Genre::class, $find, $this->argument('slug'), $this->getSource());
     }
 }
 

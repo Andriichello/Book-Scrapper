@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands\Bookclub;
 
+use App\Console\Commands\Slugable;
+use App\Console\Commands\Sourcable;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Genre;
@@ -17,6 +19,13 @@ use Illuminate\Support\Arr;
 
 class ScrapeBookBySlug extends Command
 {
+    use Sourcable, Slugable;
+
+    public function getSource(): string
+    {
+        return Source::Bookclub;
+    }
+
     /**
      * The name and signature of the console command.
      *
@@ -38,7 +47,7 @@ class ScrapeBookBySlug extends Command
      */
     public function handle(FindSlugable $find, CreateSlugable $create, BookScrapper $scrapper)
     {
-        $book = $this->findSlugableModel(Book::class, $find, $this->argument('slug'));
+        $book = $this->findBook($find, $this->argument('slug'));
         if (isset($book)) {
             $this->line(json_encode($book, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
             return 0;
@@ -55,16 +64,19 @@ class ScrapeBookBySlug extends Command
         return 0;
     }
 
-    protected function findSlugableModel(string $model, FindSlugable $find, string $slug): ?Model
+    protected function findGenre(FindSlugable $find, string $slug): ?Model
     {
-        try {
-            return $find->execute($model, [
-                new Equal('slug', $slug),
-                new Equal('source', Source::Bookclub)
-            ]);
-        } catch (\Exception $exception) {
-            return null;
-        }
+        return $this->findSlugableModel(Genre::class, $find, $slug, $this->getSource());
+    }
+
+    protected function findAuthor(FindSlugable $find, string $slug): ?Model
+    {
+        return $this->findSlugableModel(Author::class, $find, $slug, $this->getSource());
+    }
+
+    protected function findBook(FindSlugable $find, string $slug): ?Model
+    {
+        return $this->findSlugableModel(Book::class, $find, $slug, $this->getSource());
     }
 
     protected function createSlugableModel(string $model, array $data, CreateSlugable $create, string $slug): ?Model
@@ -103,13 +115,13 @@ class ScrapeBookBySlug extends Command
     protected function createBook(array $data, FindSlugable $find, CreateSlugable $create): Book
     {
         $genreData = Arr::pull($data, 'genre');
-        $genre = $this->findSlugableModel(Genre::class, $find, Arr::get($genreData, 'slug'));
+        $genre = $this->findGenre($find, Arr::get($genreData, 'slug'));
         if (empty($genre)) {
             throw new \Exception('Unable to find or create genre with slug: ' . Arr::get($genreData, 'slug'));
         }
 
         $authorData = Arr::pull($data, 'author');
-        $author = $this->findSlugableModel(Author::class, $find, Arr::get($authorData, 'slug'));
+        $author = $this->findAuthor($find, Arr::get($authorData, 'slug'));
         if (empty($author)) {
             new \Exception('Unable to find or create author with slug: ' . Arr::get($authorData, 'slug'));
         }
