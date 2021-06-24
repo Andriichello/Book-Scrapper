@@ -2,21 +2,36 @@
 
 namespace App\Services\Conditions;
 
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\Queryable;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Str;
 
-abstract class Condition
+abstract class Condition implements Queryable
 {
+    protected string $name;
     protected string $operator;
     protected mixed $value;
 
     /**
      * Condition constructor.
+     * @param string $name
      * @param string $operator
+     * @param mixed $value
      */
-    public function __construct(string $operator, mixed $value)
+    public function __construct(string $name, string $operator, mixed $value)
     {
+        $this->name = $name;
         $this->operator = $operator;
         $this->value = $value;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
     }
 
     /**
@@ -35,15 +50,5 @@ abstract class Condition
         return $this->value;
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function setValue(mixed $value): void
-    {
-        $this->value = $value;
-    }
-
-    public abstract function evaluate(mixed $actualValue): bool;
-
-    public abstract function query(Builder $query, string $name): Builder;
+    public abstract function query(EloquentBuilder|QueryBuilder $query): EloquentBuilder|QueryBuilder;
 }

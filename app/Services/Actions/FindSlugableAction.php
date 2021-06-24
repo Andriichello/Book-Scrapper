@@ -39,9 +39,9 @@ class FindSlugableAction
         return $slug->slugable();
     }
 
-    protected function slugableType(Model|string $model): string
+    protected function slugableType(string $model): string
     {
-        $type = array_search($model instanceof Model ? $model::class : $model, Relation::morphMap());
+        $type = array_search($model, Relation::morphMap());
         if (empty($type)) {
             throw new \Exception('No key is mapped to such model.');
         }

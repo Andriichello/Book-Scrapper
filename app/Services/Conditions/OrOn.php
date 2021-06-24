@@ -4,16 +4,16 @@ namespace App\Services\Conditions;
 
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Query\JoinClause;
 
-class Equal extends Condition
+class OrOn extends OrEqual
 {
-    public function __construct(string $name, mixed $value)
-    {
-        parent::__construct($name, '=', $value);
-    }
-
     public function query(EloquentBuilder|QueryBuilder $query): EloquentBuilder|QueryBuilder
     {
-        return $query->where($this->name, $this->getOperator(), $this->value);
+        if ($query instanceof JoinClause) {
+            return $query->orOn($this->name, $this->getOperator(), $this->value);
+        }
+
+        return parent::query($query);
     }
 }

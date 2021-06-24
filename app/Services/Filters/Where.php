@@ -5,9 +5,8 @@ namespace App\Services\Filters;
 use App\Services\Queryable;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Support\Arr;
 
-abstract class Filter implements Queryable
+class Where extends Filter
 {
     protected array $conditions;
 
@@ -17,7 +16,7 @@ abstract class Filter implements Queryable
      */
     public function __construct(array|Queryable $conditions)
     {
-        $this->conditions = Arr::wrap($conditions);
+        parent::__construct($conditions);
     }
 
     /**
@@ -30,9 +29,10 @@ abstract class Filter implements Queryable
 
     public function query(EloquentBuilder|QueryBuilder $query): EloquentBuilder|QueryBuilder
     {
-        foreach ($this->conditions as $condition) {
-            $query = $condition->query($query);
-        }
-        return $query;
+        return $query->where(function ($q) {
+            foreach ($this->conditions as $condition) {
+                $q = $condition->query($q);
+            }
+        });
     }
 }

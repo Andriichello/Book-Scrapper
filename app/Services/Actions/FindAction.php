@@ -2,8 +2,9 @@
 
 namespace App\Services\Actions;
 
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class FindAction extends ModelAction
 {
@@ -19,7 +20,7 @@ class FindAction extends ModelAction
         return $this->query($model, $params)->first();
     }
 
-    public function query(string $model, array $params): Builder
+    public function query(string $model, array $params): EloquentBuilder|QueryBuilder
     {
         return $this->queryAction->query($model, $params);
     }
