@@ -4,7 +4,8 @@ namespace App\Console\Commands\Bookclub;
 
 use App\Models\Author;
 use App\Models\Slug;
-use App\Services\Actions\FindSlugableAction;
+use App\Services\Actions\FindSlugable;
+use App\Services\Conditions\Equal;
 use App\Services\Scrapping\Scrappers\Bookclub\AuthorScrapper;
 use App\Services\Scrapping\Source;
 use Illuminate\Console\Command;
@@ -31,40 +32,39 @@ class ScrapeAuthorBySlug extends Command
      *
      * @return int
      */
-    public function handle(FindSlugableAction $find, AuthorScrapper $scrapper)
+    public function handle(FindSlugable $find, AuthorScrapper $scrapper)
     {
+        $author = $this->findAuthor($find);
+        if (isset($author)) {
+            $this->line(json_encode($author, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            return 0;
+        }
+
         $slug = $this->argument('slug');
         $data = $scrapper->scrape(['slug' => $slug]);
-
         if (empty($data)) {
             $this->error('Unable to parse author with such slug: ' . $slug);
             return 1;
         }
 
-        $author = $this->findOrCreateAuthor($find, $data);
+        $author = $this->createAuthor($data);
         $this->line(json_encode($author, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         return 0;
     }
 
-    protected function findAuthor(FindSlugableAction $find): ?Model {
-        $slug = $this->argument('slug');
-
+    protected function findAuthor(FindSlugable $find): ?Model
+    {
         try {
             return $find->execute(Author::class, [
-                'slug' => $slug,
-                'source' => Source::Bookclub
+                new Equal('slug', $this->argument('slug')),
+                new Equal('source', Source::Bookclub)
             ]);
         } catch (\Exception $exception) {
             return null;
         }
     }
 
-    protected function findOrCreateAuthor(FindSlugableAction $find, array $data): Model {
-        $author = $this->findAuthor($find);
-        if (isset($author)) {
-            return $author;
-        }
-
+    protected function createAuthor(array $data): Model {
         $author = new Author($data);
         if (!$author->save()) {
             throw new \Exception('Unable to save author into the database');

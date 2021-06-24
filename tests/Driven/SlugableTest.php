@@ -4,8 +4,10 @@ namespace Tests\Driven;
 
 use App\Models\Author;
 use App\Models\Slug;
+use App\Services\Actions\Find;
 use App\Services\Actions\FindSlugable;
 use App\Services\Conditions\Equal;
+use App\Services\Filters\OrWhere;
 use App\Services\Filters\Where;
 use App\Services\Scrapping\Source;
 use Database\Seeders\SlugableTestSeeder;
@@ -13,6 +15,14 @@ use Tests\TestCase;
 
 class SlugableTest extends TestCase
 {
+    protected Find $find;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->find = $this->app->make(FindSlugable::class);
+    }
+
     /**
      * @param string $name
      * @param string $surname
@@ -97,32 +107,21 @@ class SlugableTest extends TestCase
     /**
      * @param string $name
      * @param string $surname
-     * @testWith ["Tim", "Duncan"]
+     * @testWith ["tim_duncan"]
      */
-    public function testFindSlugableAuthor(string $name, string $surname)
+    public function testFindAuthorBySlug(string $slug)
     {
         $this->artisan('migrate:fresh');
         $this->seed(SlugableTestSeeder::class);
 
-        $find = $this->app->make(FindSlugable::class);
-        $query = $find->query(Author::class, [
-            new Where([
-                new Equal('name', $name),
-                new Equal('surname', $surname),
-                new Equal('biography', $surname),
-            ])
+        $query = $this->find->query(Author::class, [
+            new Equal('slug', $slug),
+            new Equal('source', Source::Bookclub),
         ]);
-
-
         print "query: {$query->toSql()}\n";
+
         $author = $query->first();
-        $this->assertNotNull($author);
-
         print "author: " . json_encode($author, JSON_PRETTY_PRINT) . "\n";
-        print "class: " . get_class($author) . "\n";
-        print "author: " . json_encode($author->refresh(), JSON_PRETTY_PRINT) . "\n";
-
-        $this->assertSame($name, $author->name);
-        $this->assertSame($surname, $author->surname);
+        $this->assertNotNull($author);
     }
 }

@@ -33,9 +33,7 @@ class Join extends Filter
     public function query(EloquentBuilder|QueryBuilder $query): EloquentBuilder|QueryBuilder
     {
         return $query->join($this->table, function ($q) {
-            foreach ($this->conditions as $condition) {
-                $q = $condition->query($q);
-            }
+            parent::query($q);
         });
     }
 }

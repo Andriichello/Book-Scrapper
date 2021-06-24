@@ -31,9 +31,7 @@ class OrWhere extends Filter
     public function query(EloquentBuilder|QueryBuilder $query): EloquentBuilder|QueryBuilder
     {
         return $query->orWhere(function ($q) {
-            foreach ($this->conditions as $condition) {
-                $q = $condition->query($q);
-            }
+            parent::query($q);
         });
     }
 }
