@@ -14,6 +14,9 @@
         <testsuite name="Driven">
             <directory suffix="Test.php">./tests/Driven</directory>
         </testsuite>
+        <testsuite name="Query">
+            <directory suffix="Test.php">./tests/Query</directory>
+        </testsuite>
     </testsuites>
     <coverage processUncoveredFiles="true">
         <include>
