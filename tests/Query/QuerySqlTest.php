@@ -13,15 +13,12 @@ use App\Services\Filters\Join;
 use App\Services\Filters\OrWhere;
 use App\Services\Filters\Where;
 use App\Services\Queryable;
-use App\Services\Scrapping\Source;
-use Database\Seeders\SlugableTestSeeder;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Tests\TestCase;
 
-class QueryWithFiltersTest extends TestCase
+class QuerySqlTest extends TestCase
 {
     protected Query $query;
 
@@ -41,7 +38,7 @@ class QueryWithFiltersTest extends TestCase
         print "query: {$query->toSql()}\n";
     }
 
-    public function testEqual()
+    public function testEqualQuery()
     {
         $query = $this->query(Slug::class, [
             new Equal('slug', 'test-slug'),
@@ -54,7 +51,7 @@ class QueryWithFiltersTest extends TestCase
         );
     }
 
-    public function testOrEqual()
+    public function testOrEqualQuery()
     {
         $query = $this->query(Slug::class, [
             new Equal('slug', 'test-slug'),
@@ -67,7 +64,7 @@ class QueryWithFiltersTest extends TestCase
         );
     }
 
-    public function testWhere()
+    public function testWhereQuery()
     {
         $query = $this->query(Slug::class, [
             new Where(new Equal('slug', 'test-slug')),
@@ -80,7 +77,7 @@ class QueryWithFiltersTest extends TestCase
         );
     }
 
-    public function testNestedWhere()
+    public function testNestedWhereQuery()
     {
         $query = $this->query(Slug::class, [
             new Where([
@@ -98,7 +95,7 @@ class QueryWithFiltersTest extends TestCase
         );
     }
 
-    public function testOrWhere()
+    public function testOrWhereQuery()
     {
 
         $query = $this->query(Slug::class, [
@@ -112,7 +109,7 @@ class QueryWithFiltersTest extends TestCase
         );
     }
 
-    public function testNestedOrWhere()
+    public function testNestedOrWhereQuery()
     {
         $query = $this->query(Slug::class, [
             new Where([
@@ -130,7 +127,7 @@ class QueryWithFiltersTest extends TestCase
         );
     }
 
-    public function testJoinOn()
+    public function testJoinOnQuery()
     {
         $query = $this->query(Author::class, [
             new Join('slugables', [
@@ -145,7 +142,7 @@ class QueryWithFiltersTest extends TestCase
         );
     }
 
-    public function testJoinOrOn()
+    public function testJoinOrOnQuery()
     {
         $query = $this->query(Author::class, [
             new Join('slugables', [
