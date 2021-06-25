@@ -2,26 +2,12 @@
 
 namespace App\Console\Commands\Bookclub;
 
-use App\Console\Commands\Slugable;
-use App\Console\Commands\Sourcable;
+use App\Console\Commands\ScrapeFromSourceBySlug;
 use App\Models\Genre;
-use App\Services\Actions\CreateSlugable;
-use App\Services\Actions\FindSlugable;
-use App\Services\Conditions\Equal;
-use App\Services\Scrapping\Scrappers\Bookclub\GenreScrapper;
 use App\Services\Scrapping\Source;
-use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Model;
 
-class ScrapeGenreBySlug extends Command
+class ScrapeGenreBySlug extends ScrapeFromSourceBySlug
 {
-    use Slugable, Sourcable;
-
-    public function getSource(): string
-    {
-        return Source::Bookclub;
-    }
-
     /**
      * The name and signature of the console command.
      *
@@ -36,35 +22,8 @@ class ScrapeGenreBySlug extends Command
      */
     protected $description = 'Scrape genre by slug';
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     * @throws \Exception
-     */
-    public function handle(FindSlugable $find, CreateSlugable $create, GenreScrapper $scrapper)
-    {
-        $genre = $this->findGenre($find);
-        if (isset($genre)) {
-            $this->line(json_encode($genre, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-            return 0;
-        }
+    protected string $model = Genre::class;
 
-        $slug = $this->argument('slug');
-        $data = $scrapper->scrape(['slug' => $slug]);
-        if (empty($data)) {
-            $this->error('Unable to parse genre with such slug: ' . $slug);
-            return 1;
-        }
-
-        $genre = $create->execute(Genre::class, $data, ['slug' => $slug, 'source' => Source::Bookclub]);
-        $this->line(json_encode($genre, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        return 0;
-    }
-
-    protected function findGenre(FindSlugable $find): ?Model
-    {
-        return $this->findSlugableModel(Genre::class, $find, $this->argument('slug'), $this->getSource());
-    }
+    protected string $source = Source::Bookclub;
 }
 

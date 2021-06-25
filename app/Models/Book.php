@@ -6,6 +6,8 @@ use App\Models\Traits\Imageable;
 use App\Models\Traits\Slugable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Book extends Model
 {
@@ -35,22 +37,21 @@ class Book extends Model
     ];
 
     protected $with = [
-        'slugs',
-        'images',
-        'authors',
-        'genres',
         'publisher',
     ];
 
-    public function authors() {
+    public function authors(): BelongsToMany
+    {
         return $this->belongsToMany(Author::class);
     }
 
-    public function genres() {
+    public function genres(): BelongsToMany
+    {
         return $this->belongsToMany(Genre::class);
     }
 
-    public function publisher() {
+    public function publisher(): BelongsTo
+    {
         return $this->belongsTo(Publisher::class);
     }
 }

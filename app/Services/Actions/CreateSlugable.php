@@ -4,6 +4,7 @@ namespace App\Services\Actions;
 
 use App\Models\Slug;
 use App\Services\Actions\Traits\SlugableTypeResolving;
+use App\Services\Conditions\Equal;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateSlugable extends Create
@@ -36,11 +37,13 @@ class CreateSlugable extends Create
             throw new \Exception('Not enough parameters to resolve slug.');
         }
 
-        return Slug::all()
-            ->where('slugable_type', $this->resolveSlugableType($model))
-            ->where('slug', $params['slug'])
-            ->where('source', $params['source'])
-            ->first();
+        $conditions = [
+            new Equal('slugable_type', $this->resolveSlugableType($model)),
+            new Equal('slug', $params['slug']),
+            new Equal('source', $params['source']),
+        ];
+
+        return $this->find->execute(Slug::class, $conditions);
     }
 
     protected function attachSlug(Model $model, array $params): Slug

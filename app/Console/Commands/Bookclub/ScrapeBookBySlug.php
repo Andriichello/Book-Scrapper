@@ -2,30 +2,18 @@
 
 namespace App\Console\Commands\Bookclub;
 
-use App\Console\Commands\Slugable;
-use App\Console\Commands\Sourcable;
+use App\Console\Commands\ScrapeFromSourceBySlug;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Genre;
 use App\Models\Publisher;
-use App\Services\Actions\CreateSlugable;
 use App\Services\Actions\FindSlugable;
-use App\Services\Conditions\Equal;
-use App\Services\Scrapping\Scrappers\Bookclub\BookScrapper;
 use App\Services\Scrapping\Source;
-use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 
-class ScrapeBookBySlug extends Command
+class ScrapeBookBySlug extends ScrapeFromSourceBySlug
 {
-    use Sourcable, Slugable;
-
-    public function getSource(): string
-    {
-        return Source::Bookclub;
-    }
-
     /**
      * The name and signature of the console command.
      *
@@ -40,56 +28,9 @@ class ScrapeBookBySlug extends Command
      */
     protected $description = 'Scrape book by slug';
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     */
-    public function handle(FindSlugable $find, CreateSlugable $create, BookScrapper $scrapper)
-    {
-        $book = $this->findBook($find, $this->argument('slug'));
-        if (isset($book)) {
-            $this->line(json_encode($book, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-            return 0;
-        }
+    protected string $model = Book::class;
 
-        $data = $scrapper->scrape(['slug' => $this->argument('slug')]);
-        if (empty($data)) {
-            $this->error('Unable to parse book with such slug: ' . $this->argument('slug'));
-            return 1;
-        }
-
-        $book = $this->createBook($data, $find, $create);
-        $this->line(json_encode($book, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        return 0;
-    }
-
-    protected function findGenre(FindSlugable $find, string $slug): ?Model
-    {
-        return $this->findSlugableModel(Genre::class, $find, $slug, $this->getSource());
-    }
-
-    protected function findAuthor(FindSlugable $find, string $slug): ?Model
-    {
-        return $this->findSlugableModel(Author::class, $find, $slug, $this->getSource());
-    }
-
-    protected function findBook(FindSlugable $find, string $slug): ?Model
-    {
-        return $this->findSlugableModel(Book::class, $find, $slug, $this->getSource());
-    }
-
-    protected function createSlugableModel(string $model, array $data, CreateSlugable $create, string $slug): ?Model
-    {
-        try {
-            return $create->execute($model, $data, [
-                'slug' => $slug,
-                'source' => Source::Bookclub
-            ]);
-        } catch (\Exception $exception) {
-            return null;
-        }
-    }
+    protected string $source = Source::Bookclub;
 
     protected function findPublisher(string $name): ?Model
     {
@@ -112,18 +53,28 @@ class ScrapeBookBySlug extends Command
         return $this->findPublisher($name) ?? $this->createPublisher($name);
     }
 
-    protected function createBook(array $data, FindSlugable $find, CreateSlugable $create): Book
+    protected function findGenre(FindSlugable $find, string $slug): ?Model
+    {
+        return $this->findSlugableModel(Genre::class, $find, $slug, $this->source);
+    }
+
+    protected function findAuthor(FindSlugable $find, string $slug): ?Model
+    {
+        return $this->findSlugableModel(Author::class, $find, $slug, $this->source);
+    }
+
+    protected function createModel(array $data): Book
     {
         $genreData = Arr::pull($data, 'genre');
-        $genre = $this->findGenre($find, Arr::get($genreData, 'slug'));
+        $genre = $this->findGenre($this->find, Arr::get($genreData, 'slug'));
         if (empty($genre)) {
-            throw new \Exception('Unable to find or create genre with slug: ' . Arr::get($genreData, 'slug'));
+            throw new \Exception('Unable to find genre with slug: ' . Arr::get($genreData, 'slug'));
         }
 
         $authorData = Arr::pull($data, 'author');
-        $author = $this->findAuthor($find, Arr::get($authorData, 'slug'));
+        $author = $this->findAuthor($this->find, Arr::get($authorData, 'slug'));
         if (empty($author)) {
-            new \Exception('Unable to find or create author with slug: ' . Arr::get($authorData, 'slug'));
+            new \Exception('Unable to find author with slug: ' . Arr::get($authorData, 'slug'));
         }
 
         $publisher = $this->findOrCreatePublisher(Arr::pull($data, 'publisher'));
@@ -131,7 +82,7 @@ class ScrapeBookBySlug extends Command
         Arr::set($data, 'details', json_encode(Arr::get($data, 'details'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         Arr::set($data, 'publisher_id', $publisher->id);
 
-        $book = $this->createSlugableModel(Book::class, $data, $create, $this->argument('slug'));
+        $book = $this->createSlugableModel(Book::class, $data, $this->create, $this->argument('slug'), $this->source);
         if (!$book->genres()->save($genre)) {
             throw new \Exception('Unable to attach genre to the book.');
         }
@@ -140,4 +91,21 @@ class ScrapeBookBySlug extends Command
         }
         return $book;
     }
+
+    protected function updateModel(Model|Book $book, array $data): bool
+    {
+        $updated = parent::updateModel($book, $data);
+        if (!$updated) {
+            return false;
+        }
+
+        $genreData = Arr::pull($data, 'genre');
+        $authorData = Arr::pull($data, 'author');
+        $publisher = $this->findOrCreatePublisher(Arr::pull($data, 'publisher'));
+
+        Arr::set($data, 'details', json_encode(Arr::get($data, 'details'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        Arr::set($data, 'publisher_id', $publisher->id);
+        return true;
+    }
+
 }

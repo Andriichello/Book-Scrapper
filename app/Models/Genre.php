@@ -15,8 +15,6 @@ class Genre extends Model
         'name',
     ];
 
-    protected $with = ['slugs'];
-
     public function books() {
         return $this->belongsToMany(Book::class);
     }

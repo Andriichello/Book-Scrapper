@@ -17,11 +17,6 @@ class Author extends Model
         'biography',
     ];
 
-    protected $with = [
-        'slugs',
-        'images',
-    ];
-
     public function books() {
         return $this->belongsToMany(Book::class);
     }
