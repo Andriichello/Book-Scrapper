@@ -74,7 +74,7 @@ class ScrapeBookBySlug extends ScrapeFromSourceBySlug
         $authorData = Arr::pull($data, 'author');
         $author = $this->findAuthor($this->find, Arr::get($authorData, 'slug'));
         if (empty($author)) {
-            new \Exception('Unable to find author with slug: ' . Arr::get($authorData, 'slug'));
+            throw new \Exception('Unable to find author with slug: ' . Arr::get($authorData, 'slug'));
         }
 
         $publisher = $this->findOrCreatePublisher(Arr::pull($data, 'publisher'));
