@@ -9,16 +9,20 @@ use Tests\TestCase;
 
 class ImageableTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(ImageableTestSeeder::class);
+    }
+
     /**
      * @param string $name
      * @param string $surname
-     * @testWith ["Tim", "Duncan"]
+     * @param int $imagesCount
+     * @testWith ["Tim", "Duncan", 2]
      */
-    public function testAuthorImagesLoading(string $name, string $surname)
+    public function testAuthorImagesLoading(string $name, string $surname, int $imagesCount)
     {
-        $this->artisan('migrate:fresh');
-        $this->seed(ImageableTestSeeder::class);
-
         $author = Author::all()
             ->where('name', $name)
             ->where('surname', $surname)
@@ -26,14 +30,13 @@ class ImageableTest extends TestCase
 
         $this->assertNotNull($author);
         $this->assertNotEmpty($author->images);
-        $this->assertSame(1, $author->images()->count());
+        $this->assertSame($imagesCount, $author->images()->count());
     }
 
     /**
      * @param string $name
      * @param string $surname
      * @testWith ["Tim", "Duncan"]
-     * @depends testAuthorImagesLoading
      */
     public function testAddNewImageToAuthor(string $name, string $surname)
     {
@@ -45,23 +48,14 @@ class ImageableTest extends TestCase
         $this->assertNotNull($author);
         $this->assertNotEmpty($author->images);
 
-        $author->images()->save(new Image([
-            'url' => 'test image url'
-        ]));
-        $author->refresh();
-
-        $this->assertSame(2, $author->images()->count());
-
-        print "\ntestAddNewImageToAuthor()...\n";
-        foreach ($author->images as $image) {
-            print json_encode($image, JSON_PRETTY_PRINT) . "\n";
-        }
+        $imageAttributes = ['url' => 'test-image-url'];
+        $author->images()->save(new Image($imageAttributes));
+        $this->assertDatabaseHas(Image::class, $imageAttributes);
     }
 
     /**
      * @param string $name
      * @param string $surname
-     * @depends testAddNewImageToAuthor
      * @testWith ["Tim", "Duncan"]
      */
     public function testRemoveImageFromAuthor(string $name, string $surname)
@@ -74,18 +68,8 @@ class ImageableTest extends TestCase
         $this->assertNotNull($author);
         $this->assertNotEmpty($author->images);
 
-        $author->images()
-            ->get()
-            ->last()
-            ->delete();
-
-        $author->refresh();
-
-        $this->assertSame(1, $author->images()->count());
-
-        print "\ntestRemoveImageFromAuthor()...\n";
-        foreach ($author->images as $image) {
-            print json_encode($image, JSON_PRETTY_PRINT) . "\n";
-        }
+        $lastImage = $author->images->last();
+        $this->assertTrue($lastImage->delete());
+        $this->assertDatabaseMissing($lastImage, $lastImage->toArray());
     }
 }
