@@ -20,9 +20,8 @@ class ImageableTestSeeder extends Seeder
      */
     public function run()
     {
-        $this->clearTables();
-
         Schema::disableForeignKeyConstraints();
+        $this->clearTables();
         $this->createAuthor();
         Schema::enableForeignKeyConstraints();
     }
@@ -37,7 +36,7 @@ class ImageableTestSeeder extends Seeder
         Publisher::query()->delete();
     }
 
-    protected function createAuthor()
+    protected function createAuthor(): Author
     {
         $author = Author::factory()
             ->create([
@@ -55,5 +54,7 @@ class ImageableTestSeeder extends Seeder
             'id' => 2,
             'url' => 'test-image-2'
         ]));
+
+        return $author;
     }
 }

@@ -15,24 +15,23 @@ use Tests\TestCase;
 
 class SlugableTest extends TestCase
 {
-    protected Find $find;
+    protected FindSlugable $find;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->find = $this->app->make(FindSlugable::class);
+
+        $this->seed(SlugableTestSeeder::class);
     }
 
     /**
      * @param string $name
      * @param string $surname
-     * @testWith ["Tim", "Duncan"]
+     * @testWith ["Tim", "Duncan", 1]
      */
-    public function testAuthorSlugsLoading(string $name, string $surname)
+    public function testAuthorSlugsLoading(string $name, string $surname, int $slugCount)
     {
-        $this->artisan('migrate:fresh');
-        $this->seed(SlugableTestSeeder::class);
-
         $author = Author::all()
             ->where('name', $name)
             ->where('surname', $surname)
@@ -40,14 +39,13 @@ class SlugableTest extends TestCase
 
         $this->assertNotNull($author);
         $this->assertNotEmpty($author->slugs);
-        $this->assertSame(1, $author->slugs()->count());
+        $this->assertSame($slugCount, $author->slugs()->count());
     }
 
     /**
      * @param string $name
      * @param string $surname
      * @testWith ["Tim", "Duncan"]
-     * @depends testAuthorSlugsLoading
      */
     public function testAddNewSlugToAuthor(string $name, string $surname)
     {
@@ -59,24 +57,18 @@ class SlugableTest extends TestCase
         $this->assertNotNull($author);
         $this->assertNotEmpty($author->slugs);
 
-        $author->slugs()->save(new Slug([
+        $slugAttributes = [
             'slug' => 'test-slug',
             'source' => Source::Starylev
-        ]));
-        $author->refresh();
+        ];
 
-        $this->assertSame(2, $author->slugs()->count());
-
-        print "\ntestAddNewSlugToAuthor()...\n";
-        foreach ($author->slugs as $slug) {
-            print json_encode($slug, JSON_PRETTY_PRINT) . "\n";
-        }
+        $author->slugs()->save(new Slug($slugAttributes));
+        $this->assertDatabaseHas(Slug::class, $slugAttributes);
     }
 
     /**
      * @param string $name
      * @param string $surname
-     * @depends testAddNewSlugToAuthor
      * @testWith ["Tim", "Duncan"]
      */
     public function testRemoveSlugFromAuthor(string $name, string $surname)
@@ -89,39 +81,25 @@ class SlugableTest extends TestCase
         $this->assertNotNull($author);
         $this->assertNotEmpty($author->slugs);
 
-        $author->slugs()
-            ->get()
-            ->last()
-            ->delete();
-
-        $author->refresh();
-
-        $this->assertSame(1, $author->slugs()->count());
-
-        print "\ntestRemoveSlugFromAuthor()...\n";
-        foreach ($author->slugs as $slug) {
-            print json_encode($slug, JSON_PRETTY_PRINT) . "\n";
-        }
+        $lastSlug = $author->slugs->last();
+        $this->assertTrue($lastSlug->delete());
+        $this->assertDatabaseMissing($lastSlug, $lastSlug->toArray());
     }
 
     /**
-     * @param string $name
-     * @param string $surname
+     * @param string $slug
      * @testWith ["tim_duncan"]
      */
     public function testFindAuthorBySlug(string $slug)
     {
-        $this->artisan('migrate:fresh');
-        $this->seed(SlugableTestSeeder::class);
+        $slugAttributes = [
+            'slug' => $slug,
+            'source' => Source::Bookclub,
+        ];
 
-        $query = $this->find->query(Author::class, [
-            new Equal('slug', $slug),
-            new Equal('source', Source::Bookclub),
-        ]);
-        print "query: {$query->toSql()}\n";
+        $author = $this->find->execute(Author::class, [], $slugAttributes);
 
-        $author = $query->first();
-        print "author: " . json_encode($author, JSON_PRETTY_PRINT) . "\n";
         $this->assertNotNull($author);
+        $this->assertTrue($author instanceof Author);
     }
 }
