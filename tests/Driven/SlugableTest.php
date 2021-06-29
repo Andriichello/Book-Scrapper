@@ -10,6 +10,7 @@ use App\Services\Conditions\Equal;
 use App\Services\Filters\OrWhere;
 use App\Services\Filters\Where;
 use App\Services\Scrapping\Source;
+use Database\Seeders\ScrappingCommandTestSeeder;
 use Database\Seeders\SlugableTestSeeder;
 use Tests\TestCase;
 
