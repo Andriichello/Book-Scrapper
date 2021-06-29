@@ -6,8 +6,12 @@ use App\Models\Author;
 use App\Models\Slug;
 use App\Services\Actions\Query;
 use App\Services\Conditions\Equal;
+use App\Services\Conditions\In;
+use App\Services\Conditions\NotEqual;
+use App\Services\Conditions\NotIn;
 use App\Services\Conditions\On;
 use App\Services\Conditions\OrEqual;
+use App\Services\Conditions\OrNotEqual;
 use App\Services\Conditions\OrOn;
 use App\Services\Filters\Join;
 use App\Services\Filters\OrWhere;
@@ -60,6 +64,29 @@ class QuerySqlTest extends TestCase
 
         $this->assertSame(
             'select * from `slugables` where `slug` = ? or `source` = ?',
+            $query->toSql()
+        );
+    }
+
+    public function testNotEqualQuery()
+    {
+        $query = $this->query(Author::class, new NotEqual('name', 'Henry'));
+
+        $this->assertSame(
+            'select * from `authors` where `name` != ?',
+            $query->toSql()
+        );
+    }
+
+    public function testOrNotEqualQuery()
+    {
+        $query = $this->query(Author::class, [
+            new NotEqual('name', 'Tom'),
+            new OrNotEqual('surname', 'Hanks')
+        ]);
+
+        $this->assertSame(
+            'select * from `authors` where `name` != ? or `surname` != ?',
             $query->toSql()
         );
     }
@@ -153,6 +180,26 @@ class QuerySqlTest extends TestCase
 
         $this->assertSame(
             'select * from `authors` inner join `slugables` on `slugables`.`slugable_id` = `authors`.`id` or `slugables`.`slugable_type` = `authors`.`type`',
+            $query->toSql()
+        );
+    }
+
+    public function testInQuery()
+    {
+        $query = $this->query(Author::class, new In('name', ['Henry', 'Tom']));
+
+        $this->assertSame(
+            'select * from `authors` where `name` in (?, ?)',
+            $query->toSql()
+        );
+    }
+
+    public function testNotInQuery()
+    {
+        $query = $this->query(Author::class, new NotIn('name', ['Henry', 'Tom']));
+
+        $this->assertSame(
+            'select * from `authors` where `name` not in (?, ?)',
             $query->toSql()
         );
     }
