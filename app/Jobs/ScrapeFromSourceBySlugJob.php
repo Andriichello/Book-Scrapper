@@ -6,6 +6,7 @@ use App\Services\Actions\CreateSlugable;
 use App\Services\Actions\FindSlugable;
 use App\Services\Scrapping\Scrapper;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -13,7 +14,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-abstract class ScrapeFromSourceBySlugJob  implements ShouldQueue
+abstract class ScrapeFromSourceBySlugJob  implements ShouldQueue, ShouldBeUnique
 {
     use Slugable;
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -32,7 +33,20 @@ abstract class ScrapeFromSourceBySlugJob  implements ShouldQueue
      */
     protected string $source = '';
 
+    /**
+     * The slug of the resource to be scrapped.
+     *
+     * @var string
+     */
     protected string $slug;
+
+    /**
+     * The number of seconds after which the job's unique lock will be released.
+     *
+     * @var int
+     */
+    public $uniqueFor = 3600;
+
     protected FindSlugable $find;
     protected CreateSlugable $create;
     protected Scrapper $scrapper;
@@ -40,6 +54,16 @@ abstract class ScrapeFromSourceBySlugJob  implements ShouldQueue
     public function __construct(string $slug)
     {
         $this->slug = $slug;
+    }
+
+    /**
+     * The unique ID of the job.
+     *
+     * @return string
+     */
+    public function uniqueId()
+    {
+        return $this->slug;
     }
 
     /**
