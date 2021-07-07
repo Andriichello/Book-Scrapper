@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use App\Console\Commands\Bookclub\ScrapeAuthorBySlug;
-use App\Console\Commands\Bookclub\ScrapeBookBySlug;
-use App\Console\Commands\Bookclub\ScrapeGenreBySlug;
-use App\Services\Scrapping\Scrapper;
-use App\Services\Scrapping\Source;
+use App\Jobs\Bookclub\ScrapeAuthorBySlugJob;
+use App\Jobs\Bookclub\ScrapeBookBySlugJob;
+use App\Jobs\Bookclub\ScrapeGenreBySlugJob;
+use App\Services\Actions\CreateSlugable;
+use App\Services\Actions\FindSlugable;
 use App\Services\Scrapping\Parsers;
 use App\Services\Scrapping\Scrappers;
 use Illuminate\Support\ServiceProvider;
@@ -32,17 +32,29 @@ class ScrapperServiceProvider extends ServiceProvider
             return new Scrappers\Bookclub\GenreScrapper($this->app->make(Parsers\Bookclub\GenreParser::class));
         });
 
-        $this->app->when(ScrapeAuthorBySlug::class)
-            ->needs(Scrapper::class)
-            ->give(Scrappers\Bookclub\AuthorScrapper::class);
+        $this->app->bindMethod([ScrapeAuthorBySlugJob::class, 'handle'], function ($job, $app) {
+            return $job->handle(
+                $app->make(FindSlugable::class),
+                $app->make(CreateSlugable::class),
+                $app->make(Scrappers\Bookclub\AuthorScrapper::class),
+            );
+        });
 
-        $this->app->when(ScrapeGenreBySlug::class)
-            ->needs(Scrapper::class)
-            ->give(Scrappers\Bookclub\GenreScrapper::class);
+        $this->app->bindMethod([ScrapeGenreBySlugJob::class, 'handle'], function ($job, $app) {
+            return $job->handle(
+                $app->make(FindSlugable::class),
+                $app->make(CreateSlugable::class),
+                $app->make(Scrappers\Bookclub\GenreScrapper::class),
+            );
+        });
 
-        $this->app->when(ScrapeBookBySlug::class)
-            ->needs(Scrapper::class)
-            ->give(Scrappers\Bookclub\BookScrapper::class);
+        $this->app->bindMethod([ScrapeBookBySlugJob::class, 'handle'], function ($job, $app) {
+            return $job->handle(
+                $app->make(FindSlugable::class),
+                $app->make(CreateSlugable::class),
+                $app->make(Scrappers\Bookclub\BookScrapper::class),
+            );
+        });
     }
 
     /**

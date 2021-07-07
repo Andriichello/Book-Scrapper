@@ -1,22 +1,22 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Jobs;
 
-use App\Console\Commands\Slugable;
-use App\Console\Commands\Sourcable;
-use App\Models\Author;
 use App\Services\Actions\CreateSlugable;
 use App\Services\Actions\FindSlugable;
-use App\Services\Actions\UpdateSlugable;
 use App\Services\Scrapping\Scrapper;
-use App\Services\Scrapping\Scrappers\Bookclub\AuthorScrapper;
-use App\Services\Scrapping\Source;
-use Illuminate\Console\Command;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
-abstract class ScrapeFromSourceBySlug extends Command
+abstract class ScrapeFromSourceBySlugJob  implements ShouldQueue
 {
     use Slugable;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
      * The name of the model to be scrapped.
@@ -32,17 +32,14 @@ abstract class ScrapeFromSourceBySlug extends Command
      */
     protected string $source = '';
 
+    protected string $slug;
     protected FindSlugable $find;
     protected CreateSlugable $create;
     protected Scrapper $scrapper;
 
-    public function __construct(FindSlugable $find, CreateSlugable $create, Scrapper $scrapper)
+    public function __construct(string $slug)
     {
-        parent::__construct();
-
-        $this->find = $find;
-        $this->create = $create;
-        $this->scrapper = $scrapper;
+        $this->slug = $slug;
     }
 
     /**
@@ -51,19 +48,25 @@ abstract class ScrapeFromSourceBySlug extends Command
      * @return int
      * @throws \Exception
      */
-    public function handle(): int
+    public function handle(FindSlugable $find, CreateSlugable $create, Scrapper $scrapper): void
     {
+        $this->find = $find;
+        $this->create = $create;
+        $this->scrapper = $scrapper;
+
         $instance = $this->createOrUpdateModel($this->scrape());
         $this->displayModel($instance);
 
-        return isset($instance) ? 1 : 0;
+        if (empty($instance)) {
+            $this->fail();
+        }
     }
 
     protected function scrape(): array
     {
-        $data = $this->scrapper->scrape(['slug' => $this->argument('slug')]);
+        $data = $this->scrapper->scrape(['slug' => $this->slug]);
         if (empty($data)) {
-            throw new \Exception("Unable to scrape data by given slug ({$this->argument('slug')})");
+            throw new \Exception("Unable to scrape data by given slug ({$this->slug})");
         }
 
         return $data;
@@ -71,12 +74,12 @@ abstract class ScrapeFromSourceBySlug extends Command
 
     protected function findModel(): ?Model
     {
-        return $this->findSlugableModel($this->model, $this->find, $this->argument('slug'), $this->source);
+        return $this->findSlugableModel($this->model, $this->find, $this->slug, $this->source);
     }
 
     protected function createModel(array $data): ?Model
     {
-        return $this->createSlugableModel($this->model, $data, $this->create, $this->argument('slug'), $this->source);
+        return $this->createSlugableModel($this->model, $data, $this->create, $this->slug, $this->source);
     }
 
     protected function updateModel(Model $model, array $data): bool
@@ -89,18 +92,19 @@ abstract class ScrapeFromSourceBySlug extends Command
         $instance = $this->findModel();
         if (isset($instance)) {
             $updated = $this->updateModel($instance, $data);
-            $this->info($updated ? 'Successfully updated.' : 'Failed to update.');
+
+            Log::info($updated ? 'Successfully updated.' : 'Failed to update.');
 
             return $updated ? $instance : null;
         }
 
         $instance = $this->createModel($data);
-        $this->info(isset($instance) ? 'Successfully created.' : 'Failed to create.');
+        Log::info(isset($instance) ? 'Successfully created.' : 'Failed to create.');
         return $instance;
     }
 
     protected function displayModel(Model $model): void
     {
-        $this->line('model: ' . json_encode($model, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        Log::debug('model: ' . json_encode($model, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 }

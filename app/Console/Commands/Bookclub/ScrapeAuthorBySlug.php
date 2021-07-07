@@ -3,10 +3,16 @@
 namespace App\Console\Commands\Bookclub;
 
 use App\Console\Commands\ScrapeFromSourceBySlug;
+use App\Jobs\Bookclub\ScrapeAuthorBySlugJob;
 use App\Models\Author;
+use App\Services\Actions\CreateSlugable;
+use App\Services\Actions\FindSlugable;
+use App\Services\Scrapping\Scrapper;
+use App\Services\Scrapping\Scrappers\Bookclub\AuthorScrapper;
 use App\Services\Scrapping\Source;
+use Illuminate\Console\Command;
 
-class ScrapeAuthorBySlug extends ScrapeFromSourceBySlug
+class ScrapeAuthorBySlug extends Command
 {
     /**
      * The name and signature of the console command.
@@ -22,7 +28,8 @@ class ScrapeAuthorBySlug extends ScrapeFromSourceBySlug
      */
     protected $description = 'Scrape author by slug';
 
-    protected string $model = Author::class;
-
-    protected string $source = Source::Bookclub;
+    public function handle(): int {
+        ScrapeAuthorBySlugJob::dispatch($this->argument('slug'));
+        return 0;
+    }
 }
