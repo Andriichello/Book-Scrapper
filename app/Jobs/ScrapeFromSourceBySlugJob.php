@@ -51,6 +51,9 @@ abstract class ScrapeFromSourceBySlugJob  implements ShouldQueue, ShouldBeUnique
     protected CreateSlugable $create;
     protected Scrapper $scrapper;
 
+    protected ?object $scrappedObj;
+    protected ?array $scrappedData;
+
     public function __construct(string $slug)
     {
         $this->slug = $slug;
@@ -69,7 +72,6 @@ abstract class ScrapeFromSourceBySlugJob  implements ShouldQueue, ShouldBeUnique
     /**
      * Execute the console command.
      *
-     * @return int
      * @throws \Exception
      */
     public function handle(FindSlugable $find, CreateSlugable $create, Scrapper $scrapper): void
@@ -78,22 +80,22 @@ abstract class ScrapeFromSourceBySlugJob  implements ShouldQueue, ShouldBeUnique
         $this->create = $create;
         $this->scrapper = $scrapper;
 
-        $instance = $this->createOrUpdateModel($this->scrape());
-        $this->displayModel($instance);
+        $this->scrappedObj = $this->createOrUpdateModel($this->scrape());
+        $this->displayModel($this->scrappedObj);
 
-        if (empty($instance)) {
+        if (empty($this->scrappedObj)) {
             $this->fail();
         }
     }
 
     protected function scrape(): array
     {
-        $data = $this->scrapper->scrape(['slug' => $this->slug]);
-        if (empty($data)) {
+        $this->scrappedData = $this->scrapper->scrape(['slug' => $this->slug]);
+        if (empty($this->scrappedData)) {
             throw new \Exception("Unable to scrape data by given slug ({$this->slug})");
         }
 
-        return $data;
+        return $this->scrappedData;
     }
 
     protected function findModel(): ?Model
