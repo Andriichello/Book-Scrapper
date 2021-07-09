@@ -40,6 +40,10 @@ class Book extends Model
         'publisher',
     ];
 
+    protected $casts = [
+        'details' => 'object'
+    ];
+
     public function authors(): BelongsToMany
     {
         return $this->belongsToMany(Author::class);
