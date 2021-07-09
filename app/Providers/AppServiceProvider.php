@@ -29,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
             'books' => 'App\Models\Book',
             'genres' => 'App\Models\Genre',
             'authors' => 'App\Models\Author',
+            'publishers' => 'App\Models\Publisher',
         ]);
     }
 }

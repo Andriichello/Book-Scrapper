@@ -7,6 +7,7 @@
     "require": {
         "php": "^7.3|^8.0",
         "bensampo/laravel-enum": "^3.4",
+        "cloudcreativity/laravel-json-api": "^3.3",
         "fabpot/goutte": "^4.0",
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",
@@ -15,6 +16,7 @@
         "laravel/tinker": "^2.5"
     },
     "require-dev": {
+        "cloudcreativity/json-api-testing": "^3.2",
         "facade/ignition": "^2.5",
         "fakerphp/faker": "^1.9.1",
         "laravel/sail": "^1.0.1",

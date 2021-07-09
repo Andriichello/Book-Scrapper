@@ -36,10 +36,6 @@ class Book extends Model
         'details',
     ];
 
-    protected $with = [
-        'publisher',
-    ];
-
     protected $casts = [
         'details' => 'object'
     ];
