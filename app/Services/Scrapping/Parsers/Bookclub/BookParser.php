@@ -34,7 +34,9 @@ class BookParser extends Parser
     protected function parseImage(Crawler $crawler): ?string
     {
         $imageCrawler = $crawler->filter('.prd-image .imgprod')->first();
-        return $this->parseElementAttribute($imageCrawler, 'src');
+        $src = $this->parseElementAttribute($imageCrawler, 'src');
+
+        return empty($src) ? null : Str::of($src)->ltrim('/')->start('https://bookclub.ua/');
     }
 
     protected function parseTitle(Crawler $crawler): ?string

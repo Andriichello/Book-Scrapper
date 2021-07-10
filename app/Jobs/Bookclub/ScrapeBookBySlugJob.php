@@ -6,11 +6,15 @@ use App\Jobs\ScrapeFromSourceBySlugJob;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Genre;
+use App\Models\Image;
 use App\Models\Publisher;
+use App\Services\Actions\CreateSlugable;
 use App\Services\Actions\FindSlugable;
+use App\Services\Scrapping\Scrapper;
 use App\Services\Scrapping\Source;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 
 class ScrapeBookBySlugJob extends ScrapeFromSourceBySlugJob
 {
@@ -92,5 +96,27 @@ class ScrapeBookBySlugJob extends ScrapeFromSourceBySlugJob
         Arr::set($data, 'details', json_encode(Arr::get($data, 'details'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         Arr::set($data, 'publisher_id', $publisher->id);
         return true;
+    }
+
+    protected function storeImage(): void {
+        $imageUrl = data_get($this->scrappedData, 'image');
+        if (empty($imageUrl) || empty($this->scrappedObj)) {
+            return;
+        }
+
+        if ($this->scrappedObj->images()->where('url', '=', $imageUrl)->exists()) {
+            Log::debug('Book\'s image was already saved: ' . $imageUrl);
+            return;
+        }
+
+        if ($this->scrappedObj->images()->save(new Image(['url' => $imageUrl]))) {
+            Log::info('Successfully saved book\'s image: ' . $imageUrl);
+        }
+    }
+
+    public function handle(FindSlugable $find, CreateSlugable $create, Scrapper $scrapper): void
+    {
+        parent::handle($find, $create, $scrapper);
+        $this->storeImage();
     }
 }
